@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MinValueValidator
+
 
 class Drink(models.Model):
     name = models.CharField(max_length=200)
@@ -11,11 +13,11 @@ class Drink(models.Model):
 class LoanFund(models.Model):
     name = models.CharField(max_length=100)
     #AMOUNT IS LATER FILLED BY THE LOAN PROVIDER 
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    max_loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    min_loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    loan_duration = models.IntegerField(default=12) # Duration in months
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    max_loan_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    min_loan_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.0, validators=[MinValueValidator(0.01)])
+    loan_duration = models.IntegerField(default=12, validators=[MinValueValidator(2)]) # Duration in months
 
     def __str__(self):
         return self.name

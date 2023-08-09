@@ -10,6 +10,10 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from ..serializers import UserSerializer
 from django.contrib.auth import authenticate
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 
 @api_view(['GET', 'POST'])
 def user_list_create_view(request):
@@ -58,6 +62,9 @@ def user_detail_view(request, pk):
 #LOGIN USER
 @api_view(['POST'])
 def user_login(request):
+
+    #print('Request Headers:', request.headers)
+    print('Request Body:', json.loads(request.body))
     # Extract username and password from the request data
     username = request.data.get('username')
     password = request.data.get('password')

@@ -27,17 +27,13 @@ def loan_list_create_view(request):
         except LoanFund.DoesNotExist:
             return Response({'error': 'LoanFund with the provided id does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        print("loan_fund.amount:", loan_fund.amount)
-        print("loan_amount:", amount)
-
         loan_amount = Decimal(amount)
         loan_fund_amount = Decimal(loan_fund.amount)
 
-        print("loan_fund_amount (decimal):", loan_fund_amount)
-        print("loan_amount (decimal):", loan_amount)
-
         if loan_fund_amount < loan_amount:
             return Response({'error': 'Amount Exceeds Funds'}, status=status.HTTP_400_BAD_REQUEST)
+        elif loan_fund.min_loan_amount > loan_amount:
+            return Response({'error': 'Amount less than Min Loan Amount'}, status=status.HTTP_400_BAD_REQUEST)
 
         loan_data = {
             'customerName': request.data.get('customerName', None),
@@ -87,5 +83,13 @@ def reject_loan(request, loan_id):
 
     return Response({'message': 'Loan rejected successfully.'}, status=status.HTTP_200_OK)
 
-
+@api_view(['DELETE'])
+def deleteLoan(request, loan_id):
+    try:
+        loan = Loan.objects.get(pk=loan_id)
+    except Loan.DoesNotExist:
+        return Response({'error': 'Loan with the provided id does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    loan.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 

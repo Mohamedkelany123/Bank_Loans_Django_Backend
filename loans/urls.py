@@ -21,4 +21,6 @@ urlpatterns = [
     path('loan/', loan.loan_list_create_view),
     path('loan/approve/<int:loan_id>', loan.approve_loan),
     path('loan/reject/<int:loan_id>', loan.reject_loan),
+    path('loan/delete/<int:loan_id>', loan.deleteLoan),
+
 ]
