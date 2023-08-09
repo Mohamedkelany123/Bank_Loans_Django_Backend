@@ -93,3 +93,13 @@ def deleteLoan(request, loan_id):
     loan.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
+@api_view(['GET'])
+def get_loans_by_username(request, username):
+    try:
+        loans = Loan.objects.filter(customerName=username)
+        serializer = LoanSerializer(loans, many=True)
+        return Response(serializer.data)
+    except:
+        return Response({'error': 'An error occurred while fetching loans.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+

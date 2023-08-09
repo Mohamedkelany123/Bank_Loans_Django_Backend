@@ -22,5 +22,6 @@ urlpatterns = [
     path('loan/approve/<int:loan_id>', loan.approve_loan),
     path('loan/reject/<int:loan_id>', loan.reject_loan),
     path('loan/delete/<int:loan_id>', loan.deleteLoan),
+    path('loan/<str:username>/', loan.get_loans_by_username),
 
 ]
