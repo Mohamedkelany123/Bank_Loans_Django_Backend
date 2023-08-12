@@ -1,13 +1,8 @@
 #Describes object going from python to json object
 from rest_framework import serializers 
 from django.contrib.auth.models import User
-from .models import Drink, LoanFund, Loan
+from .models import  LoanFund, Loan
 
-
-class DrinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Drink
-        fields = ['id', 'name', 'description']  
 
 class LoanFundSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,6 +15,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email']
 
 class LoanSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  
         model = Loan
         fields = '__all__'

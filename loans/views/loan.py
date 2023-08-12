@@ -8,14 +8,13 @@ from decimal import Decimal
 
 @api_view(['GET', 'POST'])
 def loan_list_create_view(request):
-    #GET ALL LOANS
     if request.method == 'GET':
+        # Retrieve all loans
         loans = Loan.objects.all()
         serializer = LoanSerializer(loans, many=True)
         return Response(serializer.data)
-
-    #CREATE A LOAN ONLY PROVIDE customerName, loan_fund_id,  status OTHER ATTRIBUTES ARE AUTOSET
-    elif request.method == 'POST':  
+    elif request.method == 'POST':
+        # Create a new loan
         loan_fund_id = request.data.get('loan_fund_id', None)
         amount = request.data.get('amount', 0)
 
@@ -55,7 +54,6 @@ def loan_list_create_view(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#SET LOAN AS APPROVED USING ID
 @api_view(['PUT'])
 def approve_loan(request, loan_id):
     try:
@@ -63,13 +61,13 @@ def approve_loan(request, loan_id):
     except Loan.DoesNotExist:
         return Response({'error': 'Loan with the provided id does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Approve the loan
     loan.status = 'Approved'
     loan.date_approved = datetime.date.today()
     loan.save()
 
     return Response({'message': 'Loan approved successfully.'}, status=status.HTTP_200_OK)
 
-#SET LOAN AS REJECTED USING ITS ID
 @api_view(['PUT'])
 def reject_loan(request, loan_id):
     try:
@@ -77,6 +75,7 @@ def reject_loan(request, loan_id):
     except Loan.DoesNotExist:
         return Response({'error': 'Loan with the provided id does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Reject the loan
     loan.status = 'Rejected'
     loan.date_rejected = datetime.date.today()
     loan.save()
@@ -89,7 +88,8 @@ def deleteLoan(request, loan_id):
         loan = Loan.objects.get(pk=loan_id)
     except Loan.DoesNotExist:
         return Response({'error': 'Loan with the provided id does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    # Delete the loan
     loan.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -101,5 +101,3 @@ def get_loans_by_username(request, username):
         return Response(serializer.data)
     except:
         return Response({'error': 'An error occurred while fetching loans.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-

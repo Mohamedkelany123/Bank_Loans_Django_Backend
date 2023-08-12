@@ -30,3 +30,7 @@ On Windows: . .venv\Scripts\activate
 On macOS and Linux: source venv/bin/activate
 Install dependencies: pip install -r requirements.txt
 Apply migrations: python manage.py migrate
+Run the prject: python manage.py runserver
+
+For Unit tests: python manage.py tests
+install: Python Test Explorer extention in VScode   

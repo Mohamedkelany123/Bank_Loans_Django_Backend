@@ -1,6 +1,6 @@
 from .settings import *
 
-# Use an in-memory database for testing
+# Override specific settings for testing
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

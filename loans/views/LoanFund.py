@@ -4,22 +4,32 @@ from rest_framework import status
 from ..models import LoanFund
 from ..serializers import LoanFundSerializer
 
-
 @api_view(['GET', 'POST'])
 def loanfund_list(request):
-    #GET ALL LOAN FUNDS
     if request.method == 'GET':
+        # Retrieve all loan funds
         loanfunds = LoanFund.objects.all()
         serializer = LoanFundSerializer(loanfunds, many=True)
         return Response(serializer.data)
-
-    #CREATE A LOAN FUND
     elif request.method == 'POST':
+        # Create a new loan fund
         serializer = LoanFundSerializer(data=request.data)
+
+        # Additional validation for numeric fields
+        if not serializer.is_valid():
+            error_messages = {}
+            for field, errors in serializer.errors.items():
+                if field in ['amount', 'max_loan_amount', 'min_loan_amount', 'interest_rate', 'loan_duration']:
+                    error_messages[field] = 'Invalid value for numeric field.'
+
+            return Response({"error" : error_messages}, status=status.HTTP_400_BAD_REQUEST)
+
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
+            # Handle validation errors with custom messages
             error_messages = {}
             for field, errors in serializer.errors.items():
                 if field == 'amount':
@@ -36,7 +46,7 @@ def loanfund_list(request):
                     error_messages[field] = errors
 
             return Response({"error" : error_messages}, status=status.HTTP_400_BAD_REQUEST)
-    
+
 @api_view(['GET', 'PUT', 'DELETE'])
 def loanfund_detail(request, pk):
     try:
@@ -44,13 +54,12 @@ def loanfund_detail(request, pk):
     except LoanFund.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    #GET LOAN FUND BY ID
     if request.method == 'GET':
+        # Retrieve loan fund details by ID
         serializer = LoanFundSerializer(loanfund)
         return Response(serializer.data)
-
-    #ACCUMLATE THE AMOUNT
-    if request.method == 'PUT':
+    elif request.method == 'PUT':
+        # Update loan fund amount by adding an entered amount
         serializer = LoanFundSerializer(loanfund, data=request.data, partial=True)
         if serializer.is_valid():
             entered_amount = request.data.get('amount', 0)
@@ -65,10 +74,7 @@ def loanfund_detail(request, pk):
                 return Response({'error': 'The updated amount is not within the allowed range.'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    #DELETE LOAN FUND BY ID
     elif request.method == 'DELETE':
+        # Delete loan fund by ID
         loanfund.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
