@@ -8,13 +8,35 @@ class LoanFund(models.Model):
     name = models.CharField(max_length=100)
     #AMOUNT IS LATER FILLED BY THE LOAN PROVIDER 
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
-    max_loan_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    min_loan_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.0, validators=[MinValueValidator(0.01)])
-    loan_duration = models.IntegerField(default=12, validators=[MinValueValidator(2)]) # Duration in months
+    max_loan_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.0, validators=[MinValueValidator(0)])
+    min_loan_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0, validators=[MinValueValidator(0)])
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.0, validators=[MinValueValidator(0)])
+    loan_duration = models.IntegerField(default=12, validators=[MinValueValidator(1)]) # Duration in months
 
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        # self.full_clean()
+
+        # check interest rate to be +ve
+        if self.interest_rate < 0:
+            raise ValidationError('Interest rate cannot be negative or more than.')
+        if self.max_loan_amount < 0:
+            raise ValidationError('Max loan amount cannot be -ve')
+        if self.max_loan_amount > 99999999.99:
+            raise ValidationError('Max loan amount cannot be more than 99999999.99')
+        if self.min_loan_amount < 0:
+            raise ValidationError('Min loan amount cannot be -ve')
+        if self.min_loan_amount > 99999999.99:
+            raise ValidationError('Min loan amount cannot be more than 99999999.99')
+        if self.loan_duration < 1:
+            raise ValidationError('Loan duration cannot be less than 1')
+        
+         
+        super(LoanFund, self).save(*args, **kwargs)
+        
+
 
 #LOAN MODEL
 class Loan(models.Model):
@@ -40,10 +62,6 @@ class Loan(models.Model):
         total_periods = self.duration
         monthly_payment = ((self.loan_amount * (1+interest_rate_decimal)) / total_periods)
         return round(monthly_payment, 2)
-    
-    def clean(self):
-        if self.interest_rate <= 0:
-            raise ValidationError('Interest rate must be greater than 0.')
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -58,6 +76,8 @@ class Loan(models.Model):
         # Check if the loan_amount is greater than or equal to min_loan_amount
         if self.loan_amount < 0:
             raise ValidationError('Loan amount cannot be negative.')
+        if self.interest_rate < 0:
+            raise ValidationError('Interest rate cannot be negative.')
         
         
         super(Loan, self).save(*args, **kwargs)

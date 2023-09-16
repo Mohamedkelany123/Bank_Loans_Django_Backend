@@ -5,8 +5,11 @@ from ..models import Loan, LoanFund
 from ..serializers import LoanSerializer
 import datetime
 from decimal import Decimal
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def loan_list_create_view(request):
     if request.method == 'GET':
         # Retrieve all loans
@@ -18,9 +21,11 @@ def loan_list_create_view(request):
         loan_fund_id = request.data.get('loan_fund_id', None)
         amount = request.data.get('amount', 0)
 
+        #Make sure loanFund ID is given
         if not loan_fund_id:
             return Response({'error': 'loan_fund_id must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
+        #Make sure loanFund ID is available 
         try:
             loan_fund = LoanFund.objects.get(pk=loan_fund_id)
         except LoanFund.DoesNotExist:
@@ -29,6 +34,7 @@ def loan_list_create_view(request):
         loan_amount = Decimal(amount)
         loan_fund_amount = Decimal(loan_fund.amount)
 
+        #Make sure loan amound is within the range
         if loan_fund_amount < loan_amount:
             return Response({'error': 'Amount Exceeds Funds'}, status=status.HTTP_400_BAD_REQUEST)
         elif loan_fund.min_loan_amount > loan_amount:
@@ -55,13 +61,14 @@ def loan_list_create_view(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def approve_loan(request, loan_id):
     try:
         loan = Loan.objects.get(pk=loan_id)
     except Loan.DoesNotExist:
         return Response({'error': 'Loan with the provided id does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Approve the loan
+    #Approve the loan
     loan.status = 'Approved'
     loan.date_approved = datetime.date.today()
     loan.save()
@@ -69,6 +76,7 @@ def approve_loan(request, loan_id):
     return Response({'message': 'Loan approved successfully.'}, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def reject_loan(request, loan_id):
     try:
         loan = Loan.objects.get(pk=loan_id)
@@ -83,6 +91,7 @@ def reject_loan(request, loan_id):
     return Response({'message': 'Loan rejected successfully.'}, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def deleteLoan(request, loan_id):
     try:
         loan = Loan.objects.get(pk=loan_id)
@@ -94,10 +103,14 @@ def deleteLoan(request, loan_id):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_loans_by_username(request, username):
-    try:
-        loans = Loan.objects.filter(customerName=username)
-        serializer = LoanSerializer(loans, many=True)
-        return Response(serializer.data)
-    except:
-        return Response({'error': 'An error occurred while fetching loans.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    loans = Loan.objects.filter(customerName=username)
+
+    # Check if loans for the given username exist
+    if not loans:
+        return Response({'error': 'No loans found for the provided username.'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = LoanSerializer(loans, many=True)
+    return Response(serializer.data)
